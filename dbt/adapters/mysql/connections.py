@@ -1,9 +1,8 @@
 from contextlib import contextmanager
 
-import MySQLDb
+import MySQLdb
 
-import dbt.compat
-import dbt.exceptions
+import dbt
 from dbt.adapters.base import Credentials
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.logger import GLOBAL_LOGGER as logger
@@ -53,6 +52,29 @@ class MySQLCredentials(Credentials):
 class MySQLConnectionManager(SQLConnectionManager):
     TYPE = 'mysql'
 
+    @contextmanager
+    def exception_handler(self, sql, connection_name='master'):
+        try:
+            yield
+        except MySQLdb.DatabaseError as e:
+            logger.debug('MySQL error: {}'.format(str(e)))
+
+            try:
+                # attempt to release the connection
+                self.release(connection_name)
+            except MySQLdb.Error:
+                logger.debug("Failed to release connection!")
+                pass
+
+            raise dbt.exceptions.DatabaseException(
+                dbt.compat.to_string(e).strip())
+
+        except Exception as e:
+            logger.debug("Error running SQL: %s", sql)
+            logger.debug("Rolling back transaction.")
+            self.release(connection_name)
+            raise dbt.exceptions.RuntimeException(e)
+
     @classmethod
     def open(cls, connection):
         if connection.state == 'open':
@@ -86,17 +108,7 @@ class MySQLConnectionManager(SQLConnectionManager):
         return connection
 
     def cancel(self, connection):
-        connection_name = connection.name
-        pid = connection.handle.get_backend_pid()
-
-        sql = "select pg_terminate_backend({})".format(pid)
-
-        logger.debug("Cancelling query '{}' ({})".format(connection_name, pid))
-
-        _, cursor = self.add_query(sql, 'master')
-        res = cursor.fetchone()
-
-        logger.debug("Cancel query '{}': {}".format(connection_name, res))
+        raise Exception('unsupported atm')
 
     @classmethod
     def get_credentials(cls, credentials):
