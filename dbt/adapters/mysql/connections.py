@@ -107,9 +107,6 @@ class MySQLConnectionManager(SQLConnectionManager):
 
         return connection
 
-    def is_cancelable(self):
-        return False
-
     def cancel(self, connection):
         pass
 

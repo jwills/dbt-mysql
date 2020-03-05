@@ -6,5 +6,9 @@ class MySQLAdapter(SQLAdapter):
     Column = MySQLColumn
 
     @classmethod
+    def is_cancelable(cls):
+        return False
+
+    @classmethod
     def date_function(cls):
         return 'now()'

@@ -8,7 +8,7 @@ with open(os.path.join(this_directory, 'README.md')) as f:
     long_description = f.read()
 
 package_name = "dbt-mysql"
-package_version = "0.14.1"
+package_version = "0.15.2"
 description = """The mysql adpter plugin for dbt (data build tool)"""
 
 setup(
