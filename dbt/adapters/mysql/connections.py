@@ -107,8 +107,11 @@ class MySQLConnectionManager(SQLConnectionManager):
 
         return connection
 
+    def is_cancelable(self):
+        return False
+
     def cancel(self, connection):
-        raise Exception('unsupported atm')
+        pass
 
     @classmethod
     def get_credentials(cls, credentials):
