@@ -20,7 +20,7 @@ setup(
 
     author='Josh Wills',
     author_email='joshwills+dbt@gmail.com',
-    url=<INSERT URL HERE>,
+    url='https://github.com/jwills/dbt-mysql',
     packages=find_packages(),
     package_data={
         'dbt': [
