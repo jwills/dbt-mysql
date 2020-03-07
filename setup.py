@@ -26,6 +26,7 @@ setup(
         'dbt': [
             'include/mysql/dbt_project.yml',
             'include/mysql/macros/*.sql',
+            'include/mysql/macros/**/*.sql',
         ]
     },
     install_requires=[

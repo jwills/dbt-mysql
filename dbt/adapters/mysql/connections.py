@@ -7,38 +7,19 @@ from dbt.adapters.base import Credentials
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.logger import GLOBAL_LOGGER as logger
 
+from dbt.helper_types import Port
+from dataclasses import dataclass
 
-MYSQL_CREDENTIALS_CONTRACT = {
-    'type': 'object',
-    'additionalProperties': False,
-    'properties': {
-        'database': {
-            'type': 'string',
-        },
-        'host': {
-            'type': 'string',
-        },
-        'user': {
-            'type': 'string',
-        },
-        'password': {
-            'type': 'string',
-        },
-        'port': {
-            'type': 'integer',
-            'minimum': 0,
-            'maximum': 65535,
-        },
-    },
-    'required': ['database', 'host', 'user', 'password', 'port']
-}
-
-
+@dataclass
 class MySQLCredentials(Credentials):
-    SCHEMA = MYSQL_CREDENTIALS_CONTRACT
-    ALIASES = {
-      'db': 'database',
-      'passwd': 'password',
+    host: str
+    user: str
+    port: Port
+    password: str  # FIXME: on mysql the password is optional
+
+    _ALIASES = {
+        'db': 'database',
+        'passwd': 'password'
     }
 
     @property
@@ -46,7 +27,7 @@ class MySQLCredentials(Credentials):
         return 'mysql'
 
     def _connection_keys(self):
-        return ('host', 'port', 'user', 'database')
+        return ('host', 'port', 'user', 'database', 'schema')
 
 
 class MySQLConnectionManager(SQLConnectionManager):
@@ -61,18 +42,17 @@ class MySQLConnectionManager(SQLConnectionManager):
 
             try:
                 # attempt to release the connection
-                self.release(connection_name)
+                self.release()
             except MySQLdb.Error:
                 logger.debug("Failed to release connection!")
                 pass
 
-            raise dbt.exceptions.DatabaseException(
-                dbt.compat.to_string(e).strip())
+            raise dbt.exceptions.DatabaseException(str(e).strip()) from e
 
         except Exception as e:
             logger.debug("Error running SQL: %s", sql)
             logger.debug("Rolling back transaction.")
-            self.release(connection_name)
+            self.release()
             raise dbt.exceptions.RuntimeException(e)
 
     @classmethod
@@ -82,11 +62,11 @@ class MySQLConnectionManager(SQLConnectionManager):
             return connection
 
         base_credentials = connection.credentials
-        credentials = cls.get_credentials(connection.credentials.incorporate())
+        credentials = cls.get_credentials(connection.credentials)
 
         try:
             handle = MySQLdb.connect(
-                dbname=credentials.database,
+                db=credentials.schema,
                 user=credentials.user,
                 host=credentials.host,
                 password=credentials.password,
@@ -116,4 +96,4 @@ class MySQLConnectionManager(SQLConnectionManager):
 
     @classmethod
     def get_status(cls, cursor):
-        return cursor.statusmessage
+        return cursor.connection.info()
