@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from dbt.adapters.base import Column
 from dbt.adapters.base.relation import BaseRelation, Policy
 
 @dataclass
@@ -19,3 +20,9 @@ class MySQLRelation(BaseRelation):
     quote_character: str = '`'
     include_policy: MySQLIncludePolicy = MySQLIncludePolicy()
     quote_policy: MySQLQuotePolicy = MySQLQuotePolicy()
+
+@dataclass
+class MySQLColumn(Column):
+    @property
+    def quoted(self) -> str:
+        return '`{}`'.format(self.column)

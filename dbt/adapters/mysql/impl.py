@@ -1,9 +1,10 @@
 from dbt.adapters.sql import SQLAdapter
-from dbt.adapters.mysql import MySQLConnectionManager, MySQLRelation
+from dbt.adapters.mysql import MySQLConnectionManager, MySQLRelation, MySQLColumn
 
 class MySQLAdapter(SQLAdapter):
     ConnectionManager = MySQLConnectionManager
     Relation = MySQLRelation
+    Column = MySQLColumn
 
     @classmethod
     def is_cancelable(cls):

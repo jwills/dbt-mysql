@@ -46,7 +46,7 @@
       table_schema as `schema`,
       'table' as type
     from information_schema.tables
-    where table_schema = 'dbt_test'
+    where table_schema = '{{ relation.schema }}'
     union all
     select
       table_schema as `database`,
@@ -54,7 +54,7 @@
       table_schema as `schema`,
       'view' as type
     from information_schema.views
-    where table_schema = 'dbt_test'
+    where table_schema = '{{ relation.schema }}'
   {% endcall %}
   {{ return(load_result('list_relations_without_caching').table) }}
 {% endmacro %}
